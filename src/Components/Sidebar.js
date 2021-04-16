@@ -18,18 +18,13 @@ const useStyles = makeStyles({
 function Sidebar(props) {
     const classes = useStyles();
     const [brightness, setBrightness] = React.useState(50);
-    const [saturation, setSaturation] = React.useState(50);
+    
     const [contrast, setContrast] = React.useState(50);
 
     const handleChangeBrightness = (event, newValue) => {
         setBrightness(newValue);
         props.changeBr(newValue);
         
-      };
-
-      const handleChangeSaturation = (event, newValue) => {
-        setSaturation(newValue);
-        props.changeSat(newValue);
       };
 
       const handleChangeContrast = (event, newValue) => {
@@ -40,6 +35,7 @@ function Sidebar(props) {
   return (
    <>
          <div className={classes.root}>
+         
     <Typography id="continuous-slider" gutterBottom>
         Brightness
     </Typography>

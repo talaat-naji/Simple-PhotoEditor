@@ -5,14 +5,18 @@ import IconButton from '@material-ui/core/IconButton';
 import PhotoCamera from '@material-ui/icons/PhotoCamera';
 import Button from '@material-ui/core/Button';
 import SaveIcon from '@material-ui/icons/Save';
-/*reactstrap*/
-import { Container, Row, Col } from 'reactstrap';
+import DeleteRounded from '@material-ui/icons/DeleteRounded';
+
 /*components*/
 import Sidebar from "./Sidebar.js";
+import Dialog from "./Dialog.js";
+
 const useStyles = makeStyles((theme) => ({
     root: {
         root:{
             margin:20,
+            width:"40%",
+            height:"40%",
         },
       '& > *': {
         margin: 20,
@@ -30,62 +34,73 @@ const useStyles = makeStyles((theme) => ({
 function MyCanvas() {
     const classes = useStyles();
     const [image, setImage] = React.useState(null);
-    const [imageProp, setImageProp] = React.useState(null);
+   
+    const [canv,setCanvas]= React.useState(null);
+    const [open, setOpen] = React.useState(false);
 
-   const download=(src)=>{
+    const load=(pic)=>{
+     setImage(pic);
+     
+     
+      const img = new Image();
+      img.crossOrigin = 'anonymous';  
       
-        // var element=document.createElement("a");
-        //     var file = new Blob(
-        //         [image],
-        //         {type:'image/*'}
-        //         );
-        //     element.href = file;
-        //     element.download=imageProp.name;
-        //     element.click();
+      img.src = pic;
+      img.onload = () => {
+         let old =document.getElementById("canv");
+         let td=document.getElementById("canvasHere");
+
+         //remove previous pic
+         if(old!=null){
+          old.remove();}
+
+        // create Canvas
+        const canvas = document.createElement('canvas');
+        canvas.setAttribute('id',"canv");
+
        
-            const img = new Image();
-            img.crossOrigin = 'anonymous';  // This tells the browser to request cross-origin access when trying to download the image data.
-            // ref: https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_enabled_image#Implementing_the_save_feature
-            img.src = image;
-            img.onload = () => {
-              // create Canvas
-              const canvas = document.createElement('canvas');
-              const ctx = canvas.getContext('2d');
-              canvas.width = img.width;
-              canvas.height = img.height;
-              ctx.drawImage(img, 0, 0);
+
+        const ctx = canvas.getContext('2d');
+       
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        setCanvas(canvas);
+        // append canvas
+
+        td.appendChild(canvas);
+      };
+    }
+  
+
+   const download=()=>{
+      
               // create a tag
+             
               const a = document.createElement('a');
-              a.download = 'download.png';
-              a.href = canvas.toDataURL('image/png');
+              a.download = 'PhotoEditorImage.png';
+              a.href = canv.toDataURL('image/png');
               a.click();
-            };
+              
+           
           }
         
 
  
 
     const editBrightness=(value)=>{
-        var element=document.getElementById("editPic");
-            var file = new Blob(
-                [image],
-                {type:'image/*'}
-                );
-                console.log(file);
+        var element=document.getElementById("canv");
+            
             element.style.filter= "brightness("+(value+20)+"%)";
-            // setImage(URL.createObjectURL(file));
+            
 
     }
+   
     const editContrast=(value)=>{
-        var element=document.getElementById("editPic");
-            var file = new Blob(
-                [image],
-                {type:'image/*'}
-                );
-                console.log(file);
+    var element=document.getElementById("canv");
+    
             element.style.filter= "contrast("+(value+20)+"%)";
           
-            // setImage(URL.createObjectURL(file));
 
     }
    
@@ -98,8 +113,9 @@ function MyCanvas() {
         className={classes.input} 
         id="icon-button-file" type="file" 
         onChange={(e)=>{
-            setImage(URL.createObjectURL(e.target.files[0]));
-            setImageProp(e.target.files[0]);
+         
+          load(URL.createObjectURL(e.target.files[0]));
+           
         }}
         />
         <label htmlFor="icon-button-file">
@@ -108,37 +124,47 @@ function MyCanvas() {
          {image == null?"Start by uploading your picture here  ":"change picture  "} 
          <PhotoCamera />
         </IconButton>
+
         </label>
+        {image != null?<> <Button
+                 variant="contained"
+                color="primary"
+                size="large"
+                className={classes.button}
+                startIcon={<SaveIcon />}
+                onClick={(e)=>{download()}}
+                 >
+                  Save
+                </Button>
+                <Button
+                 variant="contained"
+                color="primary"
+                size="large"
+                className={classes.button}
+                startIcon={<DeleteRounded/>}
+                onClick={(e)=>{setOpen(true)}}
+                 >
+                  Remove
+                </Button>
+                <Dialog open={open} close={()=>setOpen(false)} delete={()=>setImage(null)}/>
+                </>:<></>}
+
+
       </div>
      
       {image != null?
         <table><tr><td>
                   
                      <Sidebar 
-                     changeBr={(newBr)=>{console.log("props br"+newBr);editBrightness(newBr)}}
-                     changeCon={(newCon)=>{console.log("props br"+newCon);editContrast(newCon);}}/>
+                     changeBr={(newBr)=>{editBrightness(newBr)}}
+                     changeCon={(newCon)=>{editContrast(newCon);}}
+                     />
                  
-                 </td><td>
-                  
-     
-                         <img 
-                         className={classes.root}
-                         id="editPic"
-                         width="100%" 
-                         src={image} 
-                         alt="Ooops somthing wrong happened :("
-                         /> 
-                    <br/>
-                <Button
-                 variant="contained"
-                color="primary"
-                size="large"
-                className={classes.button}
-                startIcon={<SaveIcon />}
-                onClick={(e)=>{download(image,imageProp.name)}}
-                 >
-                  Save
-                </Button>
+                 </td><td >
+                  <div className={classes.root.root} id="canvasHere"> 
+
+                  </div>
+               
             
             </td></tr></table>
        
